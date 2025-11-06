@@ -15,8 +15,15 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
+from django.conf import settings # 하단 개발용 때매 필요
+from django.conf.urls.static import static # 하단 개발용 떄매 필요
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path("", include("letterrooms.urls")),
 ]
+
+# 개발할때만 임시로 이미지 확인하려고 넣음 (배포하면 필요없음)
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) 
