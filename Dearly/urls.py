@@ -22,6 +22,7 @@ from django.conf.urls.static import static # 하단 개발용 떄매 필요
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("", include("letterrooms.urls")),
+    path("", include('users.urls')),
 ]
 
 # 개발할때만 임시로 이미지 확인하려고 넣음 (배포하면 필요없음)
