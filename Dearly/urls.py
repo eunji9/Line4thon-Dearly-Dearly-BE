@@ -18,11 +18,19 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings # 하단 개발용 때매 필요
 from django.conf.urls.static import static # 하단 개발용 떄매 필요
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    
+    # Swagger API 문서
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    
+    # 앱 URL들
     path("", include("letterrooms.urls")),
     path("", include('users.urls')),
+    path("", include('login.urls')),  # 로그인/인증 관련
 ]
 
 # 개발할때만 임시로 이미지 확인하려고 넣음 (배포하면 필요없음)
