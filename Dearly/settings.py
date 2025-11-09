@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     'login',
     'users',
     'letters',
+    'friends',
 ]
 
 SITE_ID = env("SITE_ID", default=1) 
@@ -168,6 +169,8 @@ REST_FRAMEWORK = {
     # JWT 토큰 기반 인증
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",  # JWT 헤더 인증
+        "rest_framework.authentication.BasicAuthentication",           # Postman BasicAuth용
+        "rest_framework.authentication.SessionAuthentication",         # 로그인 세션용
     ),
     "DEFAULT_RENDERER_CLASSES": ("rest_framework.renderers.JSONRenderer",),
     # Swagger 스키마 설정

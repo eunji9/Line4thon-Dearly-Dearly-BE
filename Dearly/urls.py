@@ -31,7 +31,8 @@ urlpatterns = [
     path("", include("letterrooms.urls")),
     path("", include('users.urls')),
     path("", include('login.urls')),  # 로그인/인증 관련
-    path("letters", include("letters.urls"))
+    path("letters", include("letters.urls")),
+    path("friends/", include("friends.urls")),
 ]
 
 # 개발할때만 임시로 이미지 확인하려고 넣음 (배포하면 필요없음)
