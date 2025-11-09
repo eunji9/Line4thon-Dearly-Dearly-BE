@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     'letterrooms',
     'login',
     'users',
+    'letters',
 ]
 
 SITE_ID = env("SITE_ID", default=1) 
