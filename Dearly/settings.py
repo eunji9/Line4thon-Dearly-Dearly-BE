@@ -13,7 +13,7 @@ import environ
 from pathlib import Path
 from datetime import timedelta
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+# 프로젝트 내부 경로 설정 (예: BASE_DIR / 'subdir')
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 env = environ.Env(
@@ -29,8 +29,7 @@ if (BASE_DIR / ".env").exists():
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env("DJANGO_SECRET_KEY", default="!!!-replace-in-production-!!!")
+SECRET_KEY = env("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env('DEBUG')
@@ -54,14 +53,16 @@ INSTALLED_APPS = [
     'rest_framework',
     # JWT
     "rest_framework_simplejwt.token_blacklist", # 토큰 블랙리스트 기능 활성화
-    # dj-rest-auth (+ allauth)
-    "dj_rest_auth",
-    "dj_rest_auth.registration",
+    # Swagger (API 문서화)
+    'drf_spectacular',
+    # django-allauth (카카오 로그인)
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
     "allauth.socialaccount.providers.kakao",
-    # my apps
+    # 개발용 HTTPS (선택사항 - 필요시 주석 해제)
+    # 'django_extensions',
+    # 내 앱
     'letterrooms',
     'login',
     'users',
@@ -163,22 +164,33 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 REST_FRAMEWORK = {
-    # 쿠키 기반(JWTCookieAuthentication) 또는 헤더 기반 중 하나 선택
+    # JWT 토큰 기반 인증
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        "dj_rest_auth.jwt_auth.JWTCookieAuthentication",  # 쿠키 기반
+        "rest_framework_simplejwt.authentication.JWTAuthentication",  # JWT 헤더 인증
     ),
     "DEFAULT_RENDERER_CLASSES": ("rest_framework.renderers.JSONRenderer",),
+    # Swagger 스키마 설정
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
-REST_AUTH = {
-    "USE_JWT": True,                 # 로그인 응답을 JWT로
-    "SESSION_LOGIN": False,          # 세션 비활성
-    "TOKEN_MODEL": None,             # authtoken 비활성
-
-    # 쿠키 전략
-    "JWT_AUTH_COOKIE": "access",
-    "JWT_AUTH_REFRESH_COOKIE": "refresh",
-    "JWT_AUTH_HTTPONLY": True,       # JS 접근 금지
+# drf-spectacular 설정
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Dearly API',
+    'DESCRIPTION': '디어리(Dearly) - 카카오 로그인 및 편지함 API',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    # JWT 인증 설정
+    'COMPONENT_SPLIT_REQUEST': True,
+    'SECURITY': [{'BearerAuth': []}],
+    'APPEND_COMPONENTS': {
+        'securitySchemes': {
+            'BearerAuth': {
+                'type': 'http',
+                'scheme': 'bearer',
+                'bearerFormat': 'JWT',
+            }
+        }
+    },
 }
 
 SIMPLE_JWT = {
@@ -188,3 +200,63 @@ SIMPLE_JWT = {
     "BLACKLIST_AFTER_ROTATION": True,
     "UPDATE_LAST_LOGIN": True,
 }
+
+# ============================================================
+# CORS 설정 (배포 시 403 에러 방지)
+# ============================================================
+CORS_ALLOWED_ORIGINS = env.list(
+    "CORS_ALLOWED_ORIGINS",
+    default=["http://localhost:3000", "http://127.0.0.1:3000"]
+)
+CORS_ALLOW_CREDENTIALS = True  # 쿠키 전송 허용
+
+# CSRF 설정 (배포 시 필수)
+CSRF_TRUSTED_ORIGINS = env.list(
+    "CSRF_TRUSTED_ORIGINS",
+    default=["http://localhost:3000", "http://127.0.0.1:3000"]
+)
+
+# ============================================================
+# django-allauth 설정 (카카오 로그인)
+# ============================================================
+# 기본 설정
+ACCOUNT_USER_MODEL_USERNAME_FIELD = 'username'
+ACCOUNT_EMAIL_VERIFICATION = 'none'  # 이메일 인증 비활성화
+ACCOUNT_UNIQUE_EMAIL = True  # 이메일 중복 방지
+
+# 소셜 로그인 관련 설정
+SOCIALACCOUNT_AUTO_SIGNUP = True  # 자동 회원가입
+SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'  # 이메일 인증 불필요
+SOCIALACCOUNT_EMAIL_REQUIRED = False  # 소셜 로그인 시 이메일 선택
+
+# 소셜 로그인 성공 후 리다이렉트 URL
+LOGIN_REDIRECT_URL = '/auth/kakao/callback/'  # 카카오 로그인 성공 시
+ACCOUNT_LOGOUT_REDIRECT_URL = '/'  # 로그아웃 후
+
+# 카카오 로그인 시 추가 정보 요청
+SOCIALACCOUNT_PROVIDERS = {
+    'kakao': {
+        'SCOPE': ['profile_nickname', 'account_email'],  # 요청할 정보
+        'APP': {
+            'client_id': env('KAKAO_CLIENT_ID', default=''),  # REST API 키
+            'secret': env('KAKAO_SECRET_KEY', default=''),  # 시크릿 키
+            'key': ''
+        },
+        'OAUTH_PKCE_ENABLED': False,
+    }
+}
+
+# ============================================================
+# 보안 설정 (개발/배포 환경 분리)
+# ============================================================
+# 개발 모드에서는 HTTPS 강제 비활성화
+SECURE_SSL_REDIRECT = False if DEBUG else True
+SESSION_COOKIE_SECURE = False if DEBUG else True
+CSRF_COOKIE_SECURE = False if DEBUG else True
+SECURE_PROXY_SSL_HEADER = None  # 프록시 사용하지 않음
+
+if not DEBUG:
+    # 배포 시 추가 보안 설정
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'
