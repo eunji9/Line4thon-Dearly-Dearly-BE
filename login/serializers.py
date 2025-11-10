@@ -12,8 +12,9 @@ class UserProfileSerializer(serializers.ModelSerializer):
     """사용자 프로필 정보"""
     class Meta:
         model = UserProfile
-        fields = ['nickname', 'profile_image', 'created_letterroom_count', 
+        fields = ['real_name', 'nickname', 'profile_image', 'created_letterroom_count', 
                   'sent_letter_count', 'received_letter_count']
+        read_only_fields = ['created_letterroom_count', 'sent_letter_count', 'received_letter_count']
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -25,6 +26,19 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'user_id', 'email', 'profile']
         read_only_fields = ['id', 'user_id', 'email']
+
+
+class ProfileUpdateSerializer(serializers.ModelSerializer):
+    """프로필 수정용 Serializer"""
+    class Meta:
+        model = UserProfile
+        fields = ['real_name', 'nickname', 'profile_image']
+    
+    def validate_real_name(self, value):
+        """실명 검증"""
+        if value and len(value.strip()) == 0:
+            raise serializers.ValidationError("실명은 공백만 입력할 수 없습니다.")
+        return value.strip() if value else value
 
 
 # ============================================================

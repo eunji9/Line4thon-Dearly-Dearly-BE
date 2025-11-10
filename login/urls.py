@@ -5,6 +5,9 @@ urlpatterns = [
     # ============================================================
     # 공통 인증 API (카카오 + 자체 로그인 공용)
     # ============================================================
+    # 프로필 업데이트
+    path('auth/profile/', views.update_profile, name='update-profile'),
+    
     # 현재 사용자 정보 조회
     path('auth/user/', views.current_user, name='current-user'),
     

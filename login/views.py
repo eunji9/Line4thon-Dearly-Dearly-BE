@@ -11,7 +11,8 @@ from .serializers import (
     UserSerializer, 
     RegisterSerializer, 
     LoginSerializer, 
-    PasswordChangeSerializer
+    PasswordChangeSerializer,
+    ProfileUpdateSerializer
 )
 
 
@@ -33,6 +34,63 @@ def get_tokens_for_user(user):
     },
     tags=["인증"],
 )
+@extend_schema(
+    summary="프로필 업데이트",
+    description="""
+    현재 로그인한 사용자의 프로필을 수정합니다.
+    
+    **수정 가능한 항목:**
+    - `real_name`: 실명 (편지방 owner에 표시됨)
+    - `nickname`: 닉네임
+    - `profile_image`: 프로필 이미지
+    
+    **주의:**
+    - 실명은 편지방 생성 시 owner 필드에 사용됩니다
+    - 편지방 생성 전에 실명을 반드시 설정해야 합니다
+    """,
+    request=ProfileUpdateSerializer,
+    responses={
+        200: OpenApiResponse(
+            description="프로필 업데이트 성공",
+            examples=[
+                OpenApiExample(
+                    'Success',
+                    value={
+                        "message": "프로필이 업데이트되었습니다.",
+                        "profile": {
+                            "real_name": "홍길동",
+                            "nickname": "길동이",
+                            "profile_image": "/media/profiles/image.jpg"
+                        }
+                    }
+                )
+            ]
+        ),
+        400: OpenApiResponse(description="잘못된 입력"),
+        401: OpenApiResponse(description="인증 실패"),
+    },
+    tags=["인증"],
+)
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
+def update_profile(request):
+    """
+    프로필 업데이트
+    PATCH /auth/profile/
+    """
+    profile = request.user.profile
+    serializer = ProfileUpdateSerializer(profile, data=request.data, partial=True)
+    
+    if serializer.is_valid():
+        serializer.save()
+        return Response({
+            "message": "프로필이 업데이트되었습니다.",
+            "profile": serializer.data
+        }, status=status.HTTP_200_OK)
+    
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def current_user(request):
