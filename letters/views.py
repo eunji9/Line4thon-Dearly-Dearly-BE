@@ -44,35 +44,58 @@ def create_direct_letter(request):
 @permission_classes([IsAuthenticated])
 def direct_letter_inbox(request):
     from .models import DirectLetter
+
     user = request.user
     box = (request.GET.get("box") or "received").lower()
     partner_id = request.GET.get("partner_id")
     sort = (request.GET.get("sort") or "latest").lower()
 
+    # 1) 기본: self 편지는 제외
     if box == "sent":
-        qs = DirectLetter.objects.filter(sender=user)
-    else:
-        qs = DirectLetter.objects.filter(receiver=user)
+        qs = DirectLetter.objects.filter(sender=user).exclude(receiver=user)
+    else:  # received
+        qs = DirectLetter.objects.filter(receiver=user).exclude(sender=user)
 
+    # 2) 특정 친구와의 편지만 보기
     if partner_id:
         try:
             partner_id = int(partner_id)
         except ValueError:
-            return Response({"detail":"partner_id must be integer"},status=400)
-        
-        if partner_id == user.id:
-            qs = qs.filter(sender=user, receiver=user)
-        else:
+            return Response({"detail": "partner_id must be integer"}, status=400)
+
+        # partner_id == 나 → 아래 /self/에서 처리
+        if partner_id != user.id:
             if box == "sent":
-                qs = qs.filter(receiver_id = partner_id)
+                qs = qs.filter(receiver_id=partner_id)
             else:
                 qs = qs.filter(sender_id=partner_id)
 
+    # 3) 정렬
     if sort == "oldest":
-        qs=qs.order_by("created_at")
+        qs = qs.order_by("created_at")
+    else:  # latest (default)
+        qs = qs.order_by("-created_at")
+
+    serializer = DirectLetterSerializer(qs, many=True, context={"request": request})
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+#나에게 쓴 편지 분리
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def self_letter_inbox(request):
+    from .models import DirectLetter
+
+    user = request.user
+    sort = (request.GET.get("sort") or "latest").lower()
+
+    # sender == receiver == 나
+    qs = DirectLetter.objects.filter(sender=user, receiver=user)
+
+    if sort == "oldest":
+        qs = qs.order_by("created_at")
     else:
-        qs=qs.order_by("-created_at")
-        
+        qs = qs.order_by("-created_at")
+
     serializer = DirectLetterSerializer(qs, many=True, context={"request": request})
     return Response(serializer.data, status=status.HTTP_200_OK)
 
