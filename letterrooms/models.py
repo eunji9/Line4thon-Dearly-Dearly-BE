@@ -1,6 +1,7 @@
 import uuid # 편지방 공유 코드 자동으로 랜덤 생성
 from django.db import models
 from django.utils import timezone
+from django.conf import settings
 
 # 편지방 모델
 class LetterRoom(models.Model):
@@ -13,12 +14,8 @@ class LetterRoom(models.Model):
         WRITE_FRIENDS = "WRITE_FRIENDS", "친구만"
         WRITE_INVITED = "WRITE_INVITED", "초대 링크만"
 
-    # ⚠️ 로그인 붙기 전(현재): owner를 문자열로 보관 (예: 'eunji')
-    # ⚠️ 로그인 기능 완성 후: CharField → ForeignKey(User)로 교체하기!!
-        # from django.conf import settings
-        # owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="letterrooms")
-    owner = models.CharField(max_length=50)  # 임시 주인 식별자 (참고로... RoomLetter안의 author도 로그인 완성하면 바꿔야함.)
-
+    # 로그인 후 연동 확인 필요 (owner)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="letterrooms")
     title = models.CharField(max_length=100) # 편지방 제목
     cover_image = models.ImageField(upload_to="letterrooms/covers/", blank=True, null=True) # 커버 이미지(사용자 업로드)
     open_at = models.DateTimeField() # 디데이 공개 날짜
@@ -60,10 +57,9 @@ class RoomLetter(models.Model):
         PEACH_BLOSSOM = "PEACH_BLOSSOM", "복숭아 꽃"
 
     letterroom = models.ForeignKey(LetterRoom, on_delete=models.CASCADE, related_name="letters")
-    
-    # ⚠️ 로그인 붙으면 FK(User, null=True)로 교체!!!!
-    author = models.CharField(max_length=50)
-    
+
+    # 로그인 후 연동 확인 필요 (author)
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="room_letters") # 익명 허용 위해 null/blank 허용
     is_anonymous = models.BooleanField(default=False) # 디폴트는 닉네임 공개
     font_style = models.CharField(max_length=20, choices=FontStyle.choices, default=FontStyle.BASIC)
     paper_theme = models.CharField(max_length=20, choices=PaperTheme.choices, default=PaperTheme.WHITE)
