@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
+from .models import DirectLetter
 
 
 class UserMinSerializer(serializers.ModelSerializer):
@@ -19,7 +20,7 @@ class DirectLetterSerializer(serializers.ModelSerializer):
     is_self_letter = serializers.ReadOnlyField()
 
     class Meta:
-        model = None  
+        model = DirectLetter   
         fields = [
             "id", "sender", "receiver", "receiver_id",
             "font_style", "paper_theme", "content",
@@ -28,8 +29,6 @@ class DirectLetterSerializer(serializers.ModelSerializer):
         ]
 
     def create(self, validated_data):
-    
-        from .models import DirectLetter
 
         request = self.context["request"]
         sender = request.user
