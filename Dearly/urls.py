@@ -31,7 +31,7 @@ urlpatterns = [
     path("", include("letterrooms.urls")),
     path("", include('users.urls')),
     path("", include('login.urls')),  # 로그인/인증 관련
-    path("letters", include("letters.urls")),
+    path("letters/", include("letters.urls")),
     path("friends/", include("friends.urls")),
 ]
 
