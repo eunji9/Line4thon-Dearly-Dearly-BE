@@ -7,6 +7,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework import status
 
+from notifications.models import Notification
 from .models import LetterRoom, RoomLetter
 from .serializers import LetterRoomSerializer, RoomLetterSerializer
 
@@ -94,6 +95,19 @@ def letters_collection(request, id):
     serializer = RoomLetterSerializer(data=data)
     if serializer.is_valid():
         serializer.save()
+        letter = serializer.save()
+
+        # 방 주인에게만 알림 (자기 방에 자기가 쓴 건 알림 X)
+        if room.owner != request.user:
+            Notification.objects.create(
+                user=room.owner,
+                type=Notification.Type.ROOM_NEW_LETTER,
+                title="새 편지가 도착했어요",
+                message=f"{request.user.username} 님이 [{room.title}]에 편지를 남겼어요.",
+                letterroom=room,
+                room_letter=letter,
+            )
+
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
