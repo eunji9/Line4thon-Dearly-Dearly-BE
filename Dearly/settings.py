@@ -257,10 +257,13 @@ SOCIALACCOUNT_PROVIDERS = {
 SECURE_SSL_REDIRECT = False if DEBUG else True
 SESSION_COOKIE_SECURE = False if DEBUG else True
 CSRF_COOKIE_SECURE = False if DEBUG else True
-SECURE_PROXY_SSL_HEADER = None  # 프록시 사용하지 않음
 
+# Nginx 프록시 사용 시 필수 설정 (배포 환경)
 if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     # 배포 시 추가 보안 설정
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     X_FRAME_OPTIONS = 'DENY'
+else:
+    SECURE_PROXY_SSL_HEADER = None
