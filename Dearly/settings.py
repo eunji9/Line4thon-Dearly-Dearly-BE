@@ -68,6 +68,8 @@ INSTALLED_APPS = [
     'users',
     'letters',
     'friends',
+    'notices',
+    'notifications',
 ]
 
 SITE_ID = env("SITE_ID", default=1) 
