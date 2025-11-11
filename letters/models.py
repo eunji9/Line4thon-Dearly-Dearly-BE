@@ -10,7 +10,7 @@ class DirectLetter(models.Model): #1:1편지/나에게 쓰는편지
         SOFT = "SOFT", "부드러운체"
         ELEGANT = "ELEGANT", "우아한체"
         MODERN = "MODERN", "모던체"
-        WARM = "WARM", "따뜻git한체"
+        WARM = "WARM", "따뜻한체"
 
     class PaperTheme(models.TextChoices):
         WHITE = "WHITE", "흰색"
