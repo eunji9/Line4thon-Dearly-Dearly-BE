@@ -240,7 +240,7 @@ ACCOUNT_LOGOUT_REDIRECT_URL = '/'  # 로그아웃 후
 # 카카오 로그인 시 추가 정보 요청
 SOCIALACCOUNT_PROVIDERS = {
     'kakao': {
-        'SCOPE': ['profile_nickname', 'account_email'],  # 요청할 정보
+        'SCOPE': ['profile_nickname'],  # 요청할 정보 (이메일 권한 없음)
         'APP': {
             'client_id': env('KAKAO_CLIENT_ID', default=''),  # REST API 키
             'secret': env('KAKAO_SECRET_KEY', default=''),  # 시크릿 키
