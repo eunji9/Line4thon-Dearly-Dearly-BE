@@ -1,4 +1,5 @@
 from django.http import JsonResponse
+from django.shortcuts import redirect
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -161,40 +162,25 @@ def logout(request):
 
 
 @extend_schema(
-    summary="카카오 로그인 콜백 - JWT 토큰 발급",
+    summary="카카오 로그인 콜백 - 프론트엔드로 리다이렉트",
     description="""
     카카오 로그인이 성공한 후 호출되는 엔드포인트입니다.
     
     **사용 방법:**
     1. `/accounts/kakao/login/` 으로 접속하여 카카오 로그인 시작
     2. 카카오 인증 완료 후 `/accounts/kakao/login/callback/` 으로 자동 리다이렉트
-    3. 이 엔드포인트(`/auth/kakao/callback/`)에서 JWT 토큰 발급
+    3. 이 엔드포인트(`/auth/kakao/callback/`)에서 JWT 토큰 생성 후 프론트엔드로 리다이렉트
+    4. 프론트엔드에서 쿼리 파라미터로 access, refresh 토큰 수신
+    
+    **리다이렉트 URL:**
+    - 성공: `https://dearly.vercel.app/auth/kakao/callback?access={access_token}&refresh={refresh_token}&user_id={user_id}`
+    - 실패: `https://dearly.vercel.app/auth/kakao/callback?error=login_failed`
     
     **주의:** 이 API는 Swagger에서 직접 테스트하기 어렵습니다. 
     실제 카카오 로그인 플로우를 통해서만 정상 작동합니다.
     """,
     responses={
-        200: OpenApiResponse(
-            description="카카오 로그인 성공 및 JWT 토큰 발급",
-            examples=[
-                OpenApiExample(
-                    'Success',
-                    value={
-                        "message": "카카오 로그인 성공",
-                        "tokens": {
-                            "refresh": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
-                            "access": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
-                        },
-                        "user": {
-                            "id": 1,
-                            "user_id": "kakao_123456789",
-                            "email": "user@example.com"
-                        }
-                    }
-                )
-            ]
-        ),
-        401: OpenApiResponse(description="로그인 실패"),
+        302: OpenApiResponse(description="프론트엔드로 리다이렉트"),
     },
     tags=["카카오 로그인"],
 )
@@ -202,25 +188,27 @@ def logout(request):
 @permission_classes([AllowAny])
 def kakao_login_callback(request):
     """
-    카카오 로그인 성공 후 JWT 토큰 반환
-    GET /accounts/kakao/login/callback/ 후 자동 호출
+    카카오 로그인 성공 후 프론트엔드로 리다이렉트
+    GET /auth/kakao/callback/
     """
+    from django.conf import settings
+    
     user = request.user
+    frontend_url = settings.FRONTEND_URL
     
     if user.is_authenticated:
+        # JWT 토큰 생성
         tokens = get_tokens_for_user(user)
-        user_data = UserSerializer(user).data
+        access_token = tokens["access"]
+        refresh_token = tokens["refresh"]
+        user_id = user.username
         
-        return Response({
-            "message": "카카오 로그인 성공",
-            "tokens": tokens,
-            "user": user_data
-        }, status=status.HTTP_200_OK)
+        # 프론트엔드로 리다이렉트 (토큰을 쿼리 파라미터로 전달)
+        redirect_url = f"{frontend_url}/auth/kakao/callback?access={access_token}&refresh={refresh_token}&user_id={user_id}"
+        return redirect(redirect_url)
     
-    return Response(
-        {"error": "로그인 실패"},
-        status=status.HTTP_401_UNAUTHORIZED
-    )
+    # 로그인 실패 시 에러 파라미터와 함께 리다이렉트
+    return redirect(f"{frontend_url}/auth/kakao/callback?error=login_failed")
 
 
 # ============================================================

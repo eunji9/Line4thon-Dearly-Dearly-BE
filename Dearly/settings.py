@@ -22,9 +22,13 @@ env = environ.Env(
     CORS_ALLOWED_ORIGINS=(list, []),
     CSRF_TRUSTED_ORIGINS=(list, []),
     SITE_ID=(int, 1),
+    FRONTEND_URL=(str, 'http://localhost:3000'),
 )
 if (BASE_DIR / ".env").exists():
     environ.Env.read_env(BASE_DIR / ".env")
+
+# 프론트엔드 URL (카카오 로그인 리다이렉트용)
+FRONTEND_URL = env('FRONTEND_URL')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
