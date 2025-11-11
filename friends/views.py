@@ -7,6 +7,7 @@ from rest_framework.decorators import api_view, permission_classes # 두번째�
 from rest_framework.response import Response
 
 from .models import FriendRequest, FriendShip
+from notifications.models import Notification
 from .serializers import FriendRequestSerializer, SendFriendRequestSerializer
 from .serializers import ( # 친구 목록
     FriendShipSerializer,
@@ -30,6 +31,16 @@ def send_friend_request(request):
     serializer = SendFriendRequestSerializer(data=request.data, context={'request': request})
     if serializer.is_valid():
         friend_request = serializer.save()
+
+        #  알림 생성 (받는 사람: to_user)
+        Notification.objects.create(
+            user=friend_request.to_user,
+            type=Notification.Type.FRIEND_REQUEST,
+            title="새 친구 요청이 도착했어요",
+            message=f"{request.user.username} 님이 친구를 신청했어요.",
+            friend=request.user,
+        )
+
         return Response(FriendRequestSerializer(friend_request).data,
                         status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -6,6 +6,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework import status
 
+from notifications.models import Notification
 from users.models import UserProfile
 from .serializers import DirectLetterSerializer
 # Create your views here.
@@ -21,6 +22,16 @@ def create_direct_letter(request):
     )
     if serializer.is_valid():
         letter = serializer.save()
+
+        # 나에게 쓰는 편지는 알림 X, 상대방에게만 알림
+        if letter.sender != letter.receiver:
+            Notification.objects.create(
+                user=letter.receiver,
+                type=Notification.Type.DIRECT_LETTER,
+                title="새 1:1 편지가 도착했어요",
+                message=f"{letter.sender.username} 님이 편지를 보냈어요.",
+                direct_letter=letter,
+            )
 
         #통계 카운트
         sender_profile,_ = UserProfile.objects.get_or_create(user=letter.sender)
