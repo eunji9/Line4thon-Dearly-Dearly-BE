@@ -12,11 +12,12 @@ from .serializers import ( # 친구 목록
     FriendShipSerializer,
     UserSearchResultSerializer,
     FriendProfileSerializer,
-    SimpleUserSerializer,
+    SimpleUserSerializer, 
     LetterRoomSummarySerializer,
     RoomLetterSummarySerializer,
 )
 from letterrooms.models import LetterRoom, RoomLetter
+from letters.models import DirectLetter 
 
 User = get_user_model()
 
@@ -210,16 +211,16 @@ def friend_profile(request, friend_id):
         ],
     ).order_by('-created_at')
 
-    # 내가 이 친구에게 보낸 편지들
-    letters_sent = RoomLetter.objects.filter(
-        author=request.user,
-        letterroom__owner=friend,
+    # 내가 이 친구에게 보낸 1:1 편지들
+    letters_sent = DirectLetter.objects.filter(
+        sender=request.user,
+        receiver=friend,
     ).order_by('-created_at')
 
-    # 친구에게 받은 편지들 (이 친구가 나에게 작성해준 편지들)
-    letters_received = RoomLetter.objects.filter(
-        author=friend,
-        letterroom__owner=request.user,
+    # 친구가 나에게 보낸 1:1 편지들
+    letters_received = DirectLetter.objects.filter(
+        sender=friend,
+        receiver=request.user,
     ).order_by('-created_at')
 
     payload = {
