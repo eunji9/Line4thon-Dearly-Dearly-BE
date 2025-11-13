@@ -216,14 +216,32 @@ SIMPLE_JWT = {
 # ============================================================
 CORS_ALLOWED_ORIGINS = env.list(
     "CORS_ALLOWED_ORIGINS",
-    default=["http://localhost:5173", "http://127.0.0.1:5173"]  # 프론트엔드 로컬 주소
+    default=[
+        # 로컬 개발
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        # 배포 (백엔드)
+        "https://zihyuniz.shop",
+        "https://www.zihyuniz.shop",
+        # 배포 (프론트엔드)
+        "https://dearly-4thon.netlify.app",
+    ]
 )
 CORS_ALLOW_CREDENTIALS = True  # 쿠키 전송 허용
 
 # CSRF 설정 (배포 시 필수)
 CSRF_TRUSTED_ORIGINS = env.list(
     "CSRF_TRUSTED_ORIGINS",
-    default=["http://localhost:5173", "http://127.0.0.1:5173"]  # 프론트엔드 로컬 주소
+    default=[
+        # 로컬 개발
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        # 배포 (백엔드)
+        "https://zihyuniz.shop",
+        "https://www.zihyuniz.shop",
+        # 배포 (프론트엔드)
+        "https://dearly-4thon.netlify.app",
+    ]
 )
 
 # ============================================================
