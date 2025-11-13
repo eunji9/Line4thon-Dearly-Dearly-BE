@@ -22,7 +22,7 @@ env = environ.Env(
     CORS_ALLOWED_ORIGINS=(list, []),
     CSRF_TRUSTED_ORIGINS=(list, []),
     SITE_ID=(int, 1),
-    FRONTEND_URL=(str, 'http://localhost:3000'),
+    FRONTEND_URL=(str, 'http://localhost:5173'),  # 로컬 프론트엔드 기본값
 )
 if (BASE_DIR / ".env").exists():
     environ.Env.read_env(BASE_DIR / ".env")
@@ -216,14 +216,14 @@ SIMPLE_JWT = {
 # ============================================================
 CORS_ALLOWED_ORIGINS = env.list(
     "CORS_ALLOWED_ORIGINS",
-    default=["http://localhost:3000", "http://127.0.0.1:3000"]
+    default=["http://localhost:5173", "http://127.0.0.1:5173"]  # 프론트엔드 로컬 주소
 )
 CORS_ALLOW_CREDENTIALS = True  # 쿠키 전송 허용
 
 # CSRF 설정 (배포 시 필수)
 CSRF_TRUSTED_ORIGINS = env.list(
     "CSRF_TRUSTED_ORIGINS",
-    default=["http://localhost:3000", "http://127.0.0.1:3000"]
+    default=["http://localhost:5173", "http://127.0.0.1:5173"]  # 프론트엔드 로컬 주소
 )
 
 # ============================================================
