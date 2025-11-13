@@ -252,10 +252,14 @@ ACCOUNT_USER_MODEL_USERNAME_FIELD = 'username'
 ACCOUNT_EMAIL_VERIFICATION = 'none'  # 이메일 인증 비활성화
 ACCOUNT_UNIQUE_EMAIL = True  # 이메일 중복 방지
 
+# 배포 환경에서 HTTPS 사용 (카카오 리다이렉트 URL이 https로 생성되도록)
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'https' if not DEBUG else 'http'
+
 # 소셜 로그인 관련 설정
 SOCIALACCOUNT_AUTO_SIGNUP = True  # 자동 회원가입
 SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'  # 이메일 인증 불필요
 SOCIALACCOUNT_EMAIL_REQUIRED = False  # 소셜 로그인 시 이메일 선택
+SOCIALACCOUNT_STORE_TOKENS = True  # 소셜 로그인 토큰 저장 (선택사항)
 
 # 소셜 로그인 성공 후 리다이렉트 URL
 LOGIN_REDIRECT_URL = '/auth/kakao/done/'  # 카카오 로그인 성공 시 (백엔드 처리용)
@@ -281,6 +285,14 @@ SOCIALACCOUNT_PROVIDERS = {
 SECURE_SSL_REDIRECT = False if DEBUG else True
 SESSION_COOKIE_SECURE = False if DEBUG else True
 CSRF_COOKIE_SECURE = False if DEBUG else True
+
+# 크로스 도메인 쿠키 설정 (카카오 로그인 등)
+# 프론트엔드(dearly-4thon.netlify.app)와 백엔드(zihyuniz.shop)가 다른 도메인일 때 필요
+SESSION_COOKIE_SAMESITE = 'None' if not DEBUG else 'Lax'
+CSRF_COOKIE_SAMESITE = 'None' if not DEBUG else 'Lax'
+
+# CSRF 쿠키가 httponly가 아니어야 프론트에서 읽을 수 있음 (false가 기본값)
+CSRF_COOKIE_HTTPONLY = False
 
 # Nginx 프록시 사용 시 필수 설정 (배포 환경)
 if not DEBUG:
