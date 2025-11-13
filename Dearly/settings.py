@@ -240,7 +240,7 @@ SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'  # 이메일 인증 불필요
 SOCIALACCOUNT_EMAIL_REQUIRED = False  # 소셜 로그인 시 이메일 선택
 
 # 소셜 로그인 성공 후 리다이렉트 URL
-LOGIN_REDIRECT_URL = '/auth/kakao/callback/'  # 카카오 로그인 성공 시
+LOGIN_REDIRECT_URL = '/auth/kakao/done/'  # 카카오 로그인 성공 시 (백엔드 처리용)
 ACCOUNT_LOGOUT_REDIRECT_URL = '/'  # 로그아웃 후
 
 # 카카오 로그인 시 추가 정보 요청

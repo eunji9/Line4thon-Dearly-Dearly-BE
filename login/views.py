@@ -162,22 +162,25 @@ def logout(request):
 
 
 @extend_schema(
-    summary="카카오 로그인 콜백 - 프론트엔드로 리다이렉트",
+    summary="카카오 로그인 완료 - JWT 토큰 발급 및 프론트엔드 리다이렉트",
     description="""
-    카카오 로그인이 성공한 후 호출되는 엔드포인트입니다.
+    django-allauth가 카카오 로그인을 처리한 후 호출되는 엔드포인트입니다.
     
-    **사용 방법:**
-    1. `/accounts/kakao/login/` 으로 접속하여 카카오 로그인 시작
-    2. 카카오 인증 완료 후 `/accounts/kakao/login/callback/` 으로 자동 리다이렉트
-    3. 이 엔드포인트(`/auth/kakao/callback/`)에서 JWT 토큰 생성 후 프론트엔드로 리다이렉트
-    4. 프론트엔드에서 쿼리 파라미터로 access, refresh 토큰 수신
+    **전체 플로우:**
+    1. `/accounts/kakao/login/` - 카카오 로그인 시작
+    2. 카카오 인증 완료
+    3. `/accounts/kakao/login/callback/` - allauth가 자동으로 세션 로그인 처리
+    4. **이 엔드포인트(`/auth/kakao/done/`)** - JWT 토큰 생성 후 프론트엔드로 리다이렉트
+    5. 프론트엔드 `/auth/kakao/callback` - 토큰을 쿼리 파라미터로 수신
     
     **리다이렉트 URL:**
-    - 성공: `https://dearly.vercel.app/auth/kakao/callback?access={access_token}&refresh={refresh_token}&user_id={user_id}`
-    - 실패: `https://dearly.vercel.app/auth/kakao/callback?error=login_failed`
+    - 성공: `{FRONTEND_URL}/auth/kakao/callback?access={access_token}&refresh={refresh_token}&user_id={user_id}`
+    - 실패: `{FRONTEND_URL}/auth/kakao/callback?error=login_failed`
     
-    **주의:** 이 API는 Swagger에서 직접 테스트하기 어렵습니다. 
-    실제 카카오 로그인 플로우를 통해서만 정상 작동합니다.
+    **주의:** 
+    - 이 API는 Swagger에서 직접 테스트할 수 없습니다.
+    - 반드시 카카오 로그인 플로우를 통해서만 호출됩니다.
+    - 이 시점에서 `request.user`는 이미 로그인된 상태입니다.
     """,
     responses={
         302: OpenApiResponse(description="프론트엔드로 리다이렉트"),
@@ -186,10 +189,13 @@ def logout(request):
 )
 @api_view(['GET'])
 @permission_classes([AllowAny])
-def kakao_login_callback(request):
+def kakao_login_done(request):
     """
-    카카오 로그인 성공 후 프론트엔드로 리다이렉트
-    GET /auth/kakao/callback/
+    카카오 로그인 완료 후 JWT 토큰 발급 및 프론트엔드 리다이렉트
+    GET /auth/kakao/done/
+    
+    이 view는 django-allauth가 로그인 처리를 완료한 후 호출됩니다.
+    따라서 request.user는 이미 인증된 상태입니다.
     """
     from django.conf import settings
     
@@ -207,7 +213,7 @@ def kakao_login_callback(request):
         redirect_url = f"{frontend_url}/auth/kakao/callback?access={access_token}&refresh={refresh_token}&user_id={user_id}"
         return redirect(redirect_url)
     
-    # 로그인 실패 시 에러 파라미터와 함께 리다이렉트
+    # 로그인 실패 시 (정상적인 경우 여기로 오면 안됨)
     return redirect(f"{frontend_url}/auth/kakao/callback?error=login_failed")
 
 
