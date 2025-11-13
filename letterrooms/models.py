@@ -19,6 +19,7 @@ class LetterRoom(models.Model):
     title = models.CharField(max_length=100) # 편지방 제목
     cover_image = models.ImageField(upload_to="letterrooms/covers/", blank=True, null=True) # 커버 이미지(사용자 업로드)
     open_at = models.DateTimeField() # 디데이 공개 날짜
+    opened_noti_sent = models.BooleanField(default=False)
     visibility = models.CharField(max_length=20, choices=Visibility.choices, default=Visibility.PUBLIC_ALL) # 공개 범위 
     write_permission = models.CharField(max_length=20, choices=WritePermission.choices, default=WritePermission.WRITE_ALL) # 편지방 작성 권한
     allow_anonymous = models.BooleanField(default=True) # 익명 허용 여부
