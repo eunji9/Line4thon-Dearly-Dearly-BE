@@ -17,8 +17,8 @@ urlpatterns = [
     # ============================================================
     # 카카오 로그인 API
     # ============================================================
-    # 카카오 로그인 성공 후 JWT 토큰 발급
-    path('auth/kakao/callback/', views.kakao_login_callback, name='kakao-callback'),
+    # 카카오 로그인 완료 후 JWT 토큰 발급 (allauth 로그인 처리 후 호출됨)
+    path('auth/kakao/done/', views.kakao_login_done, name='kakao-done'),
     
     # 카카오 로그인 (django-allauth 직접 사용)
     # GET /accounts/kakao/login/ - 카카오 로그인 시작
