@@ -48,6 +48,9 @@ class DirectLetter(models.Model): #1:1편지/나에게 쓰는편지
     #공개 날짜 
     open_at = models.DateTimeField()
 
+    opened_noti_sent = models.BooleanField(default=False)
+
+
     #이미지 최대 3장/첫번쨰가 썸네일
     image1 = models.ImageField(upload_to="direct_letters/", blank=True, null=True)
     image2 = models.ImageField(upload_to="direct_letters/", blank=True, null=True)
