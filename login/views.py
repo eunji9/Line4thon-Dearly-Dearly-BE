@@ -199,22 +199,19 @@ def kakao_login_done(request):
     """
     from django.conf import settings
     
-    user = request.user
-    frontend_url = settings.FRONTEND_URL
-    
-    if user.is_authenticated:
-        # JWT 토큰 생성
-        tokens = get_tokens_for_user(user)
-        access_token = tokens["access"]
-        refresh_token = tokens["refresh"]
-        user_id = user.username
+    if request.user.is_authenticated:
+        tokens = get_tokens_for_user(request.user)
+        access = tokens["access"]
+        refresh = tokens["refresh"]
+        user_id = request.user.username
         
-        # 프론트엔드로 리다이렉트 (토큰을 쿼리 파라미터로 전달)
-        redirect_url = f"{frontend_url}/auth/kakao/callback?access={access_token}&refresh={refresh_token}&user_id={user_id}"
-        return redirect(redirect_url)
+        frontend = settings.FRONTEND_URL
+        return redirect(
+            f"{frontend}/auth/kakao/callback?access={access}&refresh={refresh}&user_id={user_id}"
+        )
     
     # 로그인 실패 시 (정상적인 경우 여기로 오면 안됨)
-    return redirect(f"{frontend_url}/auth/kakao/callback?error=login_failed")
+    return redirect(f"{settings.FRONTEND_URL}/auth/kakao/callback?error=login_failed")
 
 
 # ============================================================
